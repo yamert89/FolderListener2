@@ -19,6 +19,7 @@ ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK    Browser(HWND, UINT, WPARAM, LPARAM);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -147,7 +148,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 DestroyWindow(hWnd);
                 break;
             case 0:
-                DialogBox(hInst, MAKEINTRESOURCE(BROWSE_DIALOG), hWnd, About);
+                DialogBox(hInst, MAKEINTRESOURCE(BROWSE_DIALOG), hWnd, Browser);
                 
                 break;
             default:
@@ -220,4 +221,36 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     }
     return (INT_PTR)FALSE;
+}
+
+INT_PTR CALLBACK Browser(HWND dlg, UINT message, WPARAM wParam, LPARAM lParam) {
+    switch (message) {
+        case WM_INITDIALOG:
+            return (INT_PTR)TRUE;
+
+        case WM_COMMAND:
+            if (LOWORD(wParam) == IDOK) {
+                FListener listener;
+                int length = GetWindowTextLength(GetDlgItem(dlg, PATH)) + 1;
+                LPWSTR text = new TCHAR[length];
+                GetDlgItemText(dlg, PATH, text, length);
+                listener.startListen(text);
+                delete[] text;
+                //LPTSTR d = _T("dsd");
+                //listener.startListen("dsd");
+            } 
+            else if (LOWORD(wParam) == IDCANCEL)
+            {
+                EndDialog(dlg, LOWORD(wParam));
+                return (INT_PTR)TRUE;
+            }
+            break;
+        }
+    return (INT_PTR)FALSE;
+    
+
+}
+
+void NotifyDirectory(LPTSTR) {
+    DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd_parent, About);
 }

@@ -147,6 +147,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FolderListener.cpp" />
+    <ClCompile Include="Listener.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="FolderListener.rc" />
