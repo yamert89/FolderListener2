@@ -57,5 +57,11 @@
     <Image Include="bitmap2.bmp">
       <Filter>Файлы ресурсов</Filter>
     </Image>
+    <Image Include="icon1.ico">
+      <Filter>Файлы ресурсов</Filter>
+    </Image>
+    <Image Include="..\..\..\..\Desktop\Windows 10\ICO\File Explorer.ico">
+      <Filter>Файлы ресурсов</Filter>
+    </Image>
   </ItemGroup>
 </Project>

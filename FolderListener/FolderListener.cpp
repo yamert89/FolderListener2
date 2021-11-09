@@ -4,6 +4,7 @@
 #include "framework.h"
 #include "FolderListener.h"
 #include <iostream>
+#include <sstream>
 
 #define MAX_LOADSTRING 100
 
@@ -108,7 +109,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    hInst = hInstance; // Сохранить маркер экземпляра в глобальной переменной
 
    hWnd_parent = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
+      CW_USEDEFAULT, 0, 400, 200, nullptr, nullptr, hInstance, nullptr);
 
    if (!hWnd_parent)
    {
@@ -133,6 +134,10 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    wchar_t* result = new wchar_t[10];
+    swprintf(result, 10, L"%d", message);
+    OutputDebugStringW(result);
+    OutputDebugStringW(L"\n");
     switch (message)
     {
     case WM_COMMAND:
@@ -149,7 +154,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 break;
             case 0:
                 DialogBox(hInst, MAKEINTRESOURCE(BROWSE_DIALOG), hWnd, Browser);
-                
                 break;
             default:
                 return DefWindowProc(hWnd, message, wParam, lParam);
@@ -172,16 +176,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hWnd, &ps);
-            auto text = _T("Выбрать отслеживаемый путь");
-            TextOut(hdc, 10, 10, text, _tcslen(text));
+            /*auto text = _T("Выбрать отслеживаемый путь");
+            TextOut(hdc, 10, 10, text, _tcslen(text));*/
             hwndButton = CreateWindowW(
                 L"BUTTON",  // Predefined class; Unicode assumed 
-                L"OK",      // Button text 
+                L"Выбрать отслеживаемый путь",      // Button text 
                 WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
-                310,         // x position 
+                10,         // x position 
                 10,         // y position 
-                100,        // Button width
-                50,        // Button height
+                350,        // Button width
+                30,        // Button height
                 hWnd_parent,     // Parent window
                 NULL,       // No menu.
                 (HINSTANCE)GetWindowLongPtr(hWnd_parent, GWLP_HINSTANCE),
@@ -195,6 +199,32 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     case WM_DESTROY:
         PostQuitMessage(0);
+        break;
+    case WM_USER_SHELLICON:
+        switch (LOWORD(lParam))
+        {
+            case WM_LBUTTONDOWN:
+                POINT loc = {};
+                GetCursorPos(&loc);
+                debug(loc.x);
+                auto menu = CreatePopupMenu();
+                MENUITEMINFOW itemInfo = {};
+                itemInfo.cbSize = sizeof(MENUITEMINFO);
+                itemInfo.fMask = MIIM_FTYPE | MIIM_ID;
+                itemInfo.fType = MFT_STRING;
+                itemInfo.wID = TRAY_MENU_EXIT_ITEM;
+
+                itemInfo.dwTypeData = const_cast<LPTSTR>(TEXT("&Выход"));
+                debug(itemInfo.dwTypeData);
+                itemInfo.cch = 5;
+
+                InsertMenuItemW(menu, 0, false, &itemInfo);
+                SetForegroundWindow(hWnd_parent);
+                
+                TrackPopupMenu(menu, TPM_RIGHTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON, loc.x, loc.y, 0, hWnd_parent, NULL);
+            break;
+
+        }
         break;
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
@@ -230,14 +260,29 @@ INT_PTR CALLBACK Browser(HWND dlg, UINT message, WPARAM wParam, LPARAM lParam) {
 
         case WM_COMMAND:
             if (LOWORD(wParam) == IDOK) {
-                FListener listener;
+                NOTIFYICONDATA iconData = {};
+                iconData.cbSize = sizeof(NOTIFYICONDATA);
+                iconData.hWnd = hWnd_parent;
+                iconData.uID = APP_TRAY;
+                iconData.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP ;
+                iconData.uCallbackMessage = WM_USER_SHELLICON;
+                iconData.hIcon = LoadIcon(hInst, MAKEINTRESOURCE(ICON_TRAY));
+                //LoadString(hInst, STRING_TRAY, iconData.szInfo, MAX_LOADSTRING);
+                //LoadString(hInst, STRING_TRAY, iconData.szInfoTitle, 64);
+                LoadString(hInst, IDS_APP_TITLE, iconData.szTip, MAX_LOADSTRING);
+                Shell_NotifyIcon(NIM_ADD, &iconData);
+                
+
+
+                /*FListener listener;
                 int length = GetWindowTextLength(GetDlgItem(dlg, PATH)) + 1;
                 LPWSTR text = new TCHAR[length];
                 GetDlgItemText(dlg, PATH, text, length);
                 listener.startListen(text);
-                delete[] text;
+                delete[] text;*/
                 //LPTSTR d = _T("dsd");
                 //listener.startListen("dsd");
+                EndDialog(dlg, LOWORD(wParam));
             } 
             else if (LOWORD(wParam) == IDCANCEL)
             {
@@ -253,4 +298,16 @@ INT_PTR CALLBACK Browser(HWND dlg, UINT message, WPARAM wParam, LPARAM lParam) {
 
 void NotifyDirectory(LPTSTR) {
     DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd_parent, About);
+}
+
+void debug(int num) {
+    wchar_t* result = new wchar_t[10];
+    swprintf(result, 10, L"%d", num);
+    OutputDebugStringW(result);
+    OutputDebugStringW(L"\n");
+}
+
+void debug(LPCWSTR str) {
+    OutputDebugStringW(str);
+    OutputDebugStringW(L"\n");
 }
