@@ -5,6 +5,7 @@
 #include "FolderListener.h"
 #include <iostream>
 #include <sstream>
+#include <mmsystem.h>
 
 #define MAX_LOADSTRING 100
 
@@ -155,6 +156,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 break;
             case 0:
                 DialogBox(hInst, MAKEINTRESOURCE(BROWSE_DIALOG), hWnd, Browser);
+              
                 break;
             case TRAY_MENU_EXIT_ITEM:
                 Shell_NotifyIcon(NIM_DELETE, &iconData);
@@ -305,6 +307,7 @@ INT_PTR CALLBACK Browser(HWND dlg, UINT message, WPARAM wParam, LPARAM lParam) {
                 }
                 
                 EndDialog(dlg, LOWORD(wParam));
+                ShowWindow(hWnd_parent, SW_HIDE);
             } 
             else if (LOWORD(wParam) == IDCANCEL)
             {
@@ -348,6 +351,7 @@ DWORD WINAPI ListenerCall( _In_ LPVOID lpParam) {
 }
 
 void NotifyDirectory(LPTSTR) {
+    MessageBeep(MB_OK);
     DialogBox(hInst, MAKEINTRESOURCE(NOTICE_DIALOG), hWnd_parent, Notice);
 }
 
