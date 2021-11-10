@@ -14,6 +14,9 @@ WCHAR szTitle[MAX_LOADSTRING];                  // Текст строки за�
 WCHAR szWindowClass[MAX_LOADSTRING];            // имя класса главного окна
 HWND hWnd_parent;
 HWND hwndButton;
+NOTIFYICONDATA iconData = {};
+DWORD threadId;
+HANDLE thread;
 
 // Отправить объявления функций, включенных в этот модуль кода:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -21,6 +24,12 @@ BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    Browser(HWND, UINT, WPARAM, LPARAM);
+DWORD WINAPI ListenerCall( _In_ LPVOID lpParam);
+
+typedef struct TextData {
+    LPWSTR text;
+    int test;
+} TEXTDATA, *PTEXTDATA;
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -94,12 +103,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
     return RegisterClassExW(&wcex);
 }
 
-//
-//   ФУНКЦИЯ: InitInstance(HINSTANCE, int)
-//
-//   ЦЕЛЬ: Сохраняет маркер экземпляра и создает главное окно
-//
-//   КОММЕНТАРИИ:
+
 //
 //        В этой функции маркер экземпляра сохраняется в глобальной переменной, а также
 //        создается и выводится главное окно программы.
@@ -109,7 +113,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    hInst = hInstance; // Сохранить маркер экземпляра в глобальной переменной
 
    hWnd_parent = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT, 0, 400, 200, nullptr, nullptr, hInstance, nullptr);
+      CW_USEDEFAULT, 0, 400, 120, nullptr, nullptr, hInstance, nullptr);
 
    if (!hWnd_parent)
    {
@@ -134,10 +138,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    wchar_t* result = new wchar_t[10];
-    swprintf(result, 10, L"%d", message);
-    OutputDebugStringW(result);
-    OutputDebugStringW(L"\n");
+    //debug(message);
     switch (message)
     {
     case WM_COMMAND:
@@ -155,21 +156,27 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case 0:
                 DialogBox(hInst, MAKEINTRESOURCE(BROWSE_DIALOG), hWnd, Browser);
                 break;
+            case TRAY_MENU_EXIT_ITEM:
+                Shell_NotifyIcon(NIM_DELETE, &iconData);
+                TerminateThread(thread, 0);
+                DestroyWindow(hWnd_parent);
+                break;
             default:
                 return DefWindowProc(hWnd, message, wParam, lParam);
             }
             switch (HIWORD(wParam)) {
-            case BN_CLICKED:
-                switch (wmId) {
-                case IDM_ABOUT:
+                case BN_CLICKED:
+                    switch (wmId) {
+                    case IDM_ABOUT:
                     
-                    break;
+                        break;
 
-                default:
+                    default:
                     
-                    break;
+                        break;
+                    }
                 }
-            }
+            
         }
         break;
     case WM_PAINT:
@@ -208,7 +215,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 GetCursorPos(&loc);
                 debug(loc.x);
                 auto menu = CreatePopupMenu();
-                MENUITEMINFOW itemInfo = {};
+               /* MENUITEMINFOW itemInfo = {};
                 itemInfo.cbSize = sizeof(MENUITEMINFO);
                 itemInfo.fMask = MIIM_FTYPE | MIIM_ID;
                 itemInfo.fType = MFT_STRING;
@@ -216,15 +223,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
                 itemInfo.dwTypeData = const_cast<LPTSTR>(TEXT("&Выход"));
                 debug(itemInfo.dwTypeData);
-                itemInfo.cch = 5;
+                itemInfo.cch = 5;*/
 
-                InsertMenuItemW(menu, 0, false, &itemInfo);
+                //InsertMenuItemW(menu, 0, false, &itemInfo);
+                AppendMenuW(menu, MF_STRING, TRAY_MENU_EXIT_ITEM, L"Выход");
                 SetForegroundWindow(hWnd_parent);
                 
                 TrackPopupMenu(menu, TPM_RIGHTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON, loc.x, loc.y, 0, hWnd_parent, NULL);
             break;
 
         }
+        break;
+    case 0:
+        DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
         break;
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
@@ -260,7 +271,7 @@ INT_PTR CALLBACK Browser(HWND dlg, UINT message, WPARAM wParam, LPARAM lParam) {
 
         case WM_COMMAND:
             if (LOWORD(wParam) == IDOK) {
-                NOTIFYICONDATA iconData = {};
+                
                 iconData.cbSize = sizeof(NOTIFYICONDATA);
                 iconData.hWnd = hWnd_parent;
                 iconData.uID = APP_TRAY;
@@ -272,16 +283,27 @@ INT_PTR CALLBACK Browser(HWND dlg, UINT message, WPARAM wParam, LPARAM lParam) {
                 LoadString(hInst, IDS_APP_TITLE, iconData.szTip, MAX_LOADSTRING);
                 Shell_NotifyIcon(NIM_ADD, &iconData);
                 
-
-
-                /*FListener listener;
+                
                 int length = GetWindowTextLength(GetDlgItem(dlg, PATH)) + 1;
                 LPWSTR text = new TCHAR[length];
                 GetDlgItemText(dlg, PATH, text, length);
-                listener.startListen(text);
-                delete[] text;*/
-                //LPTSTR d = _T("dsd");
-                //listener.startListen("dsd");
+                PTEXTDATA data = (PTEXTDATA) HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(TEXTDATA));
+                //PTEXTDATA data = new TEXTDATA();
+                
+               /* auto d = *data;
+                d.text = text;
+                d.test = 888;*/
+
+                if (data == NULL) debug(L"DATA is null");
+                data->test = 777;
+                data->text = text;
+                
+                                
+                thread = CreateThread(NULL, 0, ListenerCall, data, 0, NULL);
+                if (thread == NULL) {
+                    debug(L"thread is null");
+                }
+                
                 EndDialog(dlg, LOWORD(wParam));
             } 
             else if (LOWORD(wParam) == IDCANCEL)
@@ -292,12 +314,41 @@ INT_PTR CALLBACK Browser(HWND dlg, UINT message, WPARAM wParam, LPARAM lParam) {
             break;
         }
     return (INT_PTR)FALSE;
-    
+}
 
+INT_PTR CALLBACK Notice(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    UNREFERENCED_PARAMETER(lParam);
+    switch (message)
+    {
+    case WM_INITDIALOG:
+        return (INT_PTR)TRUE;
+
+    case WM_COMMAND:
+        if (LOWORD(wParam) == IDOK)
+        {
+            EndDialog(hDlg, LOWORD(wParam));
+            return (INT_PTR)TRUE;
+        }
+        else if (LOWORD(wParam) == IDCANCEL) {
+            TerminateThread(thread, 0);
+            EndDialog(hDlg, LOWORD(wParam));
+            return (INT_PTR)TRUE;
+        }
+        break;
+    }
+    return (INT_PTR)FALSE;
+}
+
+DWORD WINAPI ListenerCall( _In_ LPVOID lpParam) {
+    PTEXTDATA data = static_cast<PTEXTDATA>( lpParam);
+    FListener listener;
+    listener.startListen(data->text);
+    return 0;
 }
 
 void NotifyDirectory(LPTSTR) {
-    DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd_parent, About);
+    DialogBox(hInst, MAKEINTRESOURCE(NOTICE_DIALOG), hWnd_parent, Notice);
 }
 
 void debug(int num) {

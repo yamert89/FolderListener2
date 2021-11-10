@@ -8,6 +8,8 @@ void FListener::startListen(LPTSTR lpDir) {
     TCHAR lpDrive[4];
     TCHAR lpFile[_MAX_FNAME];
     TCHAR lpExt[_MAX_EXT];
+    debug(L"listener input:");
+    debug(lpDir);
 
     _tsplitpath_s(lpDir, lpDrive, 4, NULL, 0, lpFile, _MAX_FNAME, lpExt, _MAX_EXT);
 
@@ -23,7 +25,7 @@ void FListener::startListen(LPTSTR lpDir) {
 
     if (dwChangeHandles[0] == INVALID_HANDLE_VALUE)
     {
-        printf("\n ERROR: FindFirstChangeNotification function failed.\n");
+        debug(L"\n ERROR : FindFirstChangeNotification function failed.\n");
         ExitProcess(GetLastError());
     }
 
@@ -45,7 +47,7 @@ void FListener::startListen(LPTSTR lpDir) {
 
     if ((dwChangeHandles[0] == NULL) /*|| (dwChangeHandles[1] == NULL)*/)
     {
-        printf("\n ERROR: Unexpected NULL from FindFirstChangeNotification.\n");
+        debug(L"\n ERROR: Unexpected NULL from FindFirstChangeNotification.\n");
         ExitProcess(GetLastError());
     }
 
@@ -56,7 +58,7 @@ void FListener::startListen(LPTSTR lpDir) {
     {
         // Wait for notification.
 
-        printf("\nWaiting for notification...\n");
+        debug(L"\nWaiting for notification...\n");
 
         dwWaitStatus = WaitForMultipleObjects(1, dwChangeHandles,
             FALSE, INFINITE);
@@ -71,7 +73,7 @@ void FListener::startListen(LPTSTR lpDir) {
             NotifyDirectory(lpDir);
             if (FindNextChangeNotification(dwChangeHandles[0]) == FALSE)
             {
-                printf("\n ERROR: FindNextChangeNotification function failed.\n");
+                debug(L"\n ERROR: FindNextChangeNotification function failed.\n");
                 ExitProcess(GetLastError());
             }
             break;
@@ -96,11 +98,11 @@ void FListener::startListen(LPTSTR lpDir) {
             // In a single-threaded environment you might not want an
             // INFINITE wait.
 
-            printf("\nNo changes in the timeout period.\n");
+            debug(L"\nNo changes in the timeout period.\n");
             break;
 
         default:
-            printf("\n ERROR: Unhandled dwWaitStatus.\n");
+            debug(L"\n ERROR: Unhandled dwWaitStatus.\n");
             ExitProcess(GetLastError());
             break;
         }
