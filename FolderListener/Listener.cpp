@@ -1,7 +1,5 @@
 #include "FolderListener.h"
 
-
-
 void FListener::startListen(LPTSTR lpDir) {
     DWORD dwWaitStatus;
     HANDLE dwChangeHandles[1];

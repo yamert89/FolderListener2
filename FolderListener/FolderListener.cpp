@@ -1,7 +1,4 @@
-﻿// FolderListener.cpp : Определяет точку входа для приложения.
-//
-
-#include "framework.h"
+﻿#include "framework.h"
 #include "FolderListener.h"
 #include <iostream>
 #include <sstream>
@@ -9,7 +6,6 @@
 
 #define MAX_LOADSTRING 100
 
-// Глобальные переменные:
 HINSTANCE hInst;                                // текущий экземпляр
 WCHAR szTitle[MAX_LOADSTRING];                  // Текст строки заголовка
 WCHAR szWindowClass[MAX_LOADSTRING];            // имя класса главного окна
@@ -19,7 +15,6 @@ NOTIFYICONDATA iconData = {};
 DWORD threadId;
 HANDLE thread;
 
-// Отправить объявления функций, включенных в этот модуль кода:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
@@ -29,7 +24,6 @@ DWORD WINAPI ListenerCall( _In_ LPVOID lpParam);
 
 typedef struct TextData {
     LPWSTR text;
-    int test;
 } TEXTDATA, *PTEXTDATA;
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
@@ -40,14 +34,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
-    // TODO: Разместите код здесь.
-
-    // Инициализация глобальных строк
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
     LoadStringW(hInstance, IDC_FOLDERLISTENER, szWindowClass, MAX_LOADSTRING);
     MyRegisterClass(hInstance);
 
-    // Выполнить инициализацию приложения:
     if (!InitInstance (hInstance, nCmdShow))
     {
         return FALSE;
@@ -57,13 +47,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     MSG msg;
 
-   // ShowWindow(hWnd, SW_HIDE); 
-
-    /*auto fold = CreateWindowExA(WS_EX_LEFT, 0, "Выберите директорию", WS_VISIBLE, 0, 0, 300, 200, hWnd_parent, NULL, hInst, NULL);
-    ShowWindow(fold, SW_SHOW);
-    UpdateWindow(fold);*/
-
-    // Цикл основного сообщения:
     while (GetMessage(&msg, nullptr, 0, 0))
     {
         if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
@@ -72,17 +55,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             DispatchMessage(&msg);
         }
     }
-
     return (int) msg.wParam;
 }
 
-
-
-//
-//  ФУНКЦИЯ: MyRegisterClass()
-//
-//  ЦЕЛЬ: Регистрирует класс окна.
-//
 ATOM MyRegisterClass(HINSTANCE hInstance)
 {
     WNDCLASSEXW wcex;
@@ -94,7 +69,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
     wcex.cbClsExtra     = 0;
     wcex.cbWndExtra     = 0;
     wcex.hInstance      = hInstance;
-    wcex.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_FOLDERLISTENER));
+    wcex.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(ICON_TRAY));
     wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW);
     wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
     wcex.lpszMenuName   = MAKEINTRESOURCEW(IDC_FOLDERLISTENER);
@@ -104,15 +79,9 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
     return RegisterClassExW(&wcex);
 }
 
-
-//
-//        В этой функции маркер экземпляра сохраняется в глобальной переменной, а также
-//        создается и выводится главное окно программы.
-//
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
-   hInst = hInstance; // Сохранить маркер экземпляра в глобальной переменной
-
+   hInst = hInstance; 
    hWnd_parent = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
       CW_USEDEFAULT, 0, 400, 120, nullptr, nullptr, hInstance, nullptr);
 
@@ -120,18 +89,11 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    {
       return FALSE;
    }
-
    ShowWindow(hWnd_parent, nCmdShow);
    UpdateWindow(hWnd_parent);
-
    return TRUE;
 }
 
-//
-//  ФУНКЦИЯ: WndProc(HWND, UINT, WPARAM, LPARAM)
-//
-//  ЦЕЛЬ: Обрабатывает сообщения в главном окне.
-//
 //  WM_COMMAND  - обработать меню приложения
 //  WM_PAINT    - Отрисовка главного окна
 //  WM_DESTROY  - отправить сообщение о выходе и вернуться
@@ -170,11 +132,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case BN_CLICKED:
                     switch (wmId) {
                     case IDM_ABOUT:
-                    
                         break;
-
                     default:
-                    
                         break;
                     }
                 }
@@ -185,8 +144,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hWnd, &ps);
-            /*auto text = _T("Выбрать отслеживаемый путь");
-            TextOut(hdc, 10, 10, text, _tcslen(text));*/
             hwndButton = CreateWindowW(
                 L"BUTTON",  // Predefined class; Unicode assumed 
                 L"Выбрать отслеживаемый путь",      // Button text 
@@ -199,10 +156,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 NULL,       // No menu.
                 (HINSTANCE)GetWindowLongPtr(hWnd_parent, GWLP_HINSTANCE),
                 NULL);
-            
-            
-            // TODO: Добавьте сюда любой код прорисовки, использующий HDC...
-           
             EndPaint(hWnd, &ps);
         }
         break;
@@ -226,14 +179,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 itemInfo.dwTypeData = const_cast<LPTSTR>(TEXT("&Выход"));
                 debug(itemInfo.dwTypeData);
                 itemInfo.cch = 5;*/
-
                 //InsertMenuItemW(menu, 0, false, &itemInfo);
                 AppendMenuW(menu, MF_STRING, TRAY_MENU_EXIT_ITEM, L"Выход");
                 SetForegroundWindow(hWnd_parent);
-                
                 TrackPopupMenu(menu, TPM_RIGHTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON, loc.x, loc.y, 0, hWnd_parent, NULL);
             break;
-
         }
         break;
     case 0:
@@ -242,11 +192,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
     }
-   
     return 0;
 }
 
-// Обработчик сообщений для окна "О программе".
 INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
     UNREFERENCED_PARAMETER(lParam);
@@ -273,39 +221,30 @@ INT_PTR CALLBACK Browser(HWND dlg, UINT message, WPARAM wParam, LPARAM lParam) {
 
         case WM_COMMAND:
             if (LOWORD(wParam) == IDOK) {
-                
                 iconData.cbSize = sizeof(NOTIFYICONDATA);
                 iconData.hWnd = hWnd_parent;
                 iconData.uID = APP_TRAY;
                 iconData.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP ;
                 iconData.uCallbackMessage = WM_USER_SHELLICON;
                 iconData.hIcon = LoadIcon(hInst, MAKEINTRESOURCE(ICON_TRAY));
-                //LoadString(hInst, STRING_TRAY, iconData.szInfo, MAX_LOADSTRING);
-                //LoadString(hInst, STRING_TRAY, iconData.szInfoTitle, 64);
                 LoadString(hInst, IDS_APP_TITLE, iconData.szTip, MAX_LOADSTRING);
                 Shell_NotifyIcon(NIM_ADD, &iconData);
-                
                 
                 int length = GetWindowTextLength(GetDlgItem(dlg, PATH)) + 1;
                 LPWSTR text = new TCHAR[length];
                 GetDlgItemText(dlg, PATH, text, length);
+                if (GetFileAttributesW(text) == INVALID_FILE_ATTRIBUTES) {
+                    DialogBox(hInst, MAKEINTRESOURCE(ERROR_DIALOG), dlg, About);
+                    return (INT_PTR)TRUE;
+                }
                 PTEXTDATA data = (PTEXTDATA) HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(TEXTDATA));
-                //PTEXTDATA data = new TEXTDATA();
-                
-               /* auto d = *data;
-                d.text = text;
-                d.test = 888;*/
-
                 if (data == NULL) debug(L"DATA is null");
-                data->test = 777;
                 data->text = text;
-                
-                                
+                  
                 thread = CreateThread(NULL, 0, ListenerCall, data, 0, NULL);
                 if (thread == NULL) {
                     debug(L"thread is null");
                 }
-                
                 EndDialog(dlg, LOWORD(wParam));
                 ShowWindow(hWnd_parent, SW_HIDE);
             } 
@@ -334,8 +273,10 @@ INT_PTR CALLBACK Notice(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
             return (INT_PTR)TRUE;
         }
         else if (LOWORD(wParam) == IDCANCEL) {
-            TerminateThread(thread, 0);
+            ShowWindow(hWnd_parent, SW_SHOW);
+            UpdateWindow(hWnd_parent);
             EndDialog(hDlg, LOWORD(wParam));
+            TerminateThread(thread, 0);
             return (INT_PTR)TRUE;
         }
         break;
