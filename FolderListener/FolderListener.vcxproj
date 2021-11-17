@@ -154,8 +154,10 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\..\..\Desktop\Windows 10\ICO\File Explorer.ico" />
+    <Image Include="..\..\..\..\desktop\windows 10\ico\icon1.ico" />
     <Image Include="bitmap1.bmp" />
     <Image Include="bitmap2.bmp" />
+    <Image Include="File Explorer.ico" />
     <Image Include="FolderListener.ico" />
     <Image Include="icon1.ico" />
     <Image Include="small.ico" />

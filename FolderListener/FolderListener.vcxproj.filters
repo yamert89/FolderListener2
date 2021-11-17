@@ -63,5 +63,11 @@
     <Image Include="..\..\..\..\Desktop\Windows 10\ICO\File Explorer.ico">
       <Filter>Файлы ресурсов</Filter>
     </Image>
+    <Image Include="..\..\..\..\desktop\windows 10\ico\icon1.ico">
+      <Filter>Файлы ресурсов</Filter>
+    </Image>
+    <Image Include="File Explorer.ico">
+      <Filter>Файлы ресурсов</Filter>
+    </Image>
   </ItemGroup>
 </Project>
